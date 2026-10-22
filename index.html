@@ -78,10 +78,11 @@ button { font: inherit; color: inherit; }
 #labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 
 /* ---------- 3D labels ---------- */
-.rl { position: absolute; left: 0; top: 0; pointer-events: auto; border: 0; padding: 0; background: none; cursor: pointer; transform: translate(-9999px, -9999px); will-change: transform; display: flex; flex-direction: column; align-items: center; }
+.rl { position: absolute; left: 0; top: 0; pointer-events: none; border: 0; padding: 0; background: none; cursor: pointer; transform: translate(-9999px, -9999px); will-change: transform; display: flex; flex-direction: column; align-items: center; }
 .rl .b { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; padding: 4px 9px 3px 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.93); color: #142230; font: 600 13.5px/1.1 var(--f-display); letter-spacing: .01em; box-shadow: 0 1px 2px rgba(10, 20, 30, .22), 0 3px 10px rgba(10, 20, 30, .14); border: 1px solid rgba(21, 87, 212, .35); }
 .rl .b i { width: 8px; height: 8px; border-radius: 50%; background: #1557d4; box-shadow: 0 0 0 2px rgba(255,255,255,.9); flex: none; }
 .rl .b small { font: 500 11.5px var(--f-display); color: #5d6d79; }
+.rl .b, .rl .p { pointer-events: auto; }
 .rl .s { width: 1.5px; height: 16px; background: linear-gradient(rgba(20, 34, 48, .75), rgba(20, 34, 48, 0)); }
 .rl .p { width: 7px; height: 7px; border-radius: 50%; background: #1557d4; border: 1.5px solid #fff; margin-top: -3px; box-shadow: 0 0 0 1px rgba(10,20,30,.25); }
 .rl:hover .b, .rl.hov .b { border-color: #1557d4; background: #fff; }
@@ -612,7 +613,7 @@ function buildLabels() {
     el.setAttribute('aria-label', r.name);
     el.innerHTML = `<span class="b"><i></i>${esc(r.short)}${r.kind === 'cima' && r.alt ? `<small>${fmtM(r.alt)}</small>` : ''}</span><span class="s"></span><span class="p"></span>`;
     el.addEventListener('click', e => { e.stopPropagation(); select(r.id, { fly: true }); });
-    el.addEventListener('pointerenter', () => setHover(r.id));
+    el.addEventListener('pointerenter', () => { if (hoverQ) { cancelAnimationFrame(hoverQ); hoverQ = null; } $('#tip').hidden = true; setHover(r.id); });
     el.addEventListener('pointerleave', () => setHover(null));
     labelLayer.appendChild(el);
     labels.push({ r, el, w: 0, h: 0, v: null, wt: weight(r) });
@@ -648,7 +649,7 @@ function placeLabels() {
   // the start point always wins its place
   for (const C of ctxLabels) if (C.c.k === 'start') placeCtx(C, placed, hit, true);
   // route labels: selected and hovered first
-  const order = labels.slice().sort((a, b) => (b.r.id === S.sel) - (a.r.id === S.sel) || (b.r.id === S.hov) - (a.r.id === S.hov) || b.wt - a.wt);
+  const order = labels.slice().sort((a, b) => (b.r.id === S.sel) - (a.r.id === S.sel) || b.wt - a.wt);
   for (const L of order) {
     const show = S.names && vis.has(L.r.id) && (!S.solo || !S.sel || S.sel === L.r.id);
     if (!show) { L.el.style.transform = 'translate(-9999px,-9999px)'; continue; }
@@ -661,13 +662,14 @@ function placeLabels() {
     const top = sy - L.h - 2, bot = sy - 14;
     // centred flag, then flag to the right, then to the left; a dot if none fits
     const cands = [['c', [sx - L.w / 2 - 3, top, sx + L.w / 2 + 3, bot], sx - L.w / 2], ['al', [sx - 6, top, sx + L.w + 3, bot], sx - 3.5], ['ar', [sx - L.w - 3, top, sx + 6, bot], sx - L.w + 3.5]];
-    let pick = L.r.id === S.sel ? cands[0] : cands.find(c => !hit(c[1]));
+    const prev = L.last && cands.find(c => c[0] === L.last);
+    let pick = L.r.id === S.sel ? cands[0] : (prev && !hit(prev[1]) ? prev : cands.find(c => !hit(c[1])));
     let dot = false;
     if (!pick) {
       dot = true; pick = ['d', [sx - 7, sy - 7, sx + 7, sy + 7], sx - 5.5];
       if (hit(pick[1])) { L.el.style.transform = OFF; continue; }
     }
-    placed.push(pick[1]);
+    placed.push(pick[1]); L.last = pick[0];
     L.el.classList.toggle('dot', dot); L.el.classList.toggle('al', pick[0] === 'al'); L.el.classList.toggle('ar', pick[0] === 'ar');
     L.el.classList.toggle('dim', !!S.sel && S.sel !== L.r.id && S.hov !== L.r.id);
     const ty = dot ? sy - 5.5 : sy - L.h + 3.5;
