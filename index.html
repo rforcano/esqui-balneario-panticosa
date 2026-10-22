@@ -162,7 +162,7 @@ body.carded .tbar button { padding: 8px; }
 #legend .lg span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 #legend svg { width: 22px; height: 10px; flex: none; }
 #legend .hint { color: var(--muted); font-size: 11px; margin-top: 5px; line-height: 1.35; }
-.credit { position: absolute; left: calc(366px + env(safe-area-inset-left, 0px)); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 3; font-size: 10.5px; line-height: 1.35; color: rgba(20, 34, 48, .66); text-shadow: 0 0 3px rgba(255,255,255,.9); max-width: calc(100% - 400px); transition: left .28s cubic-bezier(.2,.8,.2,1); }
+.credit { position: absolute; left: calc(366px + env(safe-area-inset-left, 0px)); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 3; font-size: 11px; font-weight: 500; line-height: 1.35; color: #000; text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 8px rgba(255,255,255,.85); max-width: calc(100% - 400px); transition: left .28s cubic-bezier(.2,.8,.2,1); }
 #side.collapsed ~ .credit { left: calc(14px + env(safe-area-inset-left, 0px)); }
 #tip { position: absolute; z-index: 7; pointer-events: none; padding: 5px 9px 4px; border-radius: 7px; background: var(--ink); color: var(--panel-solid); font: 600 13.5px/1.2 var(--f-display); white-space: nowrap; transform: translate(-50%, calc(-100% - 14px)); box-shadow: var(--shadow); }
 #tip small { font: 500 12px var(--f-display); opacity: .75; margin-left: 5px; }
